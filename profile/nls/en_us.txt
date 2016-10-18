@@ -1,0 +1,19 @@
+# KevoControl
+ND-KEVOCONTROL-NAME = Kevo Disovery
+
+CMD-NETDISCO-NAME = Discover Locks
+CMD-DISCOVER-NAME = Discover Locks
+
+# KevoLock
+ND-KEVO-NAME = KEVO
+ND-KEVO-ICON = DoorLock
+ST-KEVO-ST-NAME = Status
+ST-KEVO-0 = Unlocked
+ST-KEVO-100 = Locked
+ST-KEVO-101 = Unknown
+ST-KEVO-102 = Jammed
+ST-KEVO-303 = Processing
+ST-KEVO-304 = Confirming
+
+CMD-KEVO-DON-NAME = Lock
+CMD-KEVO-DOF-NAME = Unlock

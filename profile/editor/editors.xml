@@ -1,0 +1,7 @@
+<editors>
+    <!-- Kevo Status -->
+    <editor id="KEVOST">
+        <range uom="11" subset="0,100,101,102" nls="KEVO_ST" />
+    </editor>
+
+</editors>

@@ -1,0 +1,34 @@
+<nodeDefs>
+    <!-- KEVO Control -->
+    <nodeDef id="KEVODISCO" nls="KEVOCONTROL">
+        <editors />
+        <sts />
+        <cmds>
+            <sends />
+            <accepts>
+                <cmd id="DISCOVER" />
+            </accepts>
+        </cmds>
+    </nodeDef>
+    <!-- NODE DEF from 5.0 document http://wiki.universal-devices.com/index.php?title=V50_MAIN -->
+
+    <!-- KEVO Lock -->
+    <nodeDef id="KEVO" nls="KEVO">
+        <editors />
+        <sts>
+            <st id="ST" editor="KEVOST" />
+        </sts>
+        <cmds>
+            <sends />
+            <accepts>
+                <cmd id="DON" />
+<!--                  <p id="" editor="KEVOST" optional="T" init="ST" />
+                </cmd>-->
+                <cmd id="DOF" />
+                <cmd id="QUERY" />
+            </accepts>
+        </cmds>
+    </nodeDef>
+
+
+</nodeDefs>
