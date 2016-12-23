@@ -73,17 +73,26 @@ class KevoLock(Node):
 
     def _setOn(self, **kwargs):
 
+        self.logger.info("Locking: %s", self.name)
+
         result = self.lock.lock()
         if result == True:
             self.report_driver()
+            self.logger.info("Locked: %s", self.name)
+        else:
+            self.logger.info("Locking: %s failed", self.name)
 
         return result
 
     def _setOff(self, **kwargs):
+        self.logger.info("Locking: %s", self.name)
 
         result = self.lock.unlock()
         if result == True:
             self.report_driver()
+            self.logger.info("Unlocked: %s", self.name)
+        else:
+            self.logger.info("Unlocking: %s failed", self.name)
 
         return result
 
@@ -97,11 +106,13 @@ class KevoLock(Node):
                 'Confirming' : 304}[state]
 
     def query(self, **kwargs):
+
         self.update_info()
         self.report_driver()
         return True
 
     def update_info(self):
+
         self.lock.refresh()
         self.update_driver()
 

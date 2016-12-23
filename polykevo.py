@@ -33,9 +33,10 @@ class KevoNodeServer(SimpleNodeServer):
 
     def report_drivers(self):
         self.poly.logger.info("report_drivers")
-        # if len(self.controller.locks()) >= 1:
-        #     for i in self.locks:
-        #         i.report_driver()
+
+        if len(self.controller.locks()) >= 1:
+            for lock in self.locks:
+                lock.update_driver()
 
 
 def main():

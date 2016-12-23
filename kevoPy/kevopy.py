@@ -34,7 +34,7 @@ class KevoPy(object):
         responseText = response.text
 
         if response.url.endswith("user/locks"):
-            return
+            return False
 
         # print response.url
         p = re.compile(r'input name="authenticity_token".*?value=\"(.*?)\"', re.MULTILINE | re.DOTALL)
@@ -42,6 +42,7 @@ class KevoPy(object):
 
         self._token = values[0].strip()
 
+        return True
     def _praseLockIdentifiers(self,html):
 
         p = re.compile(r'<div class=\'lock_unlock_container\' data-bolt-state=\'.*?\' data-lock-id=\'(.*?)\' id', re.MULTILINE | re.DOTALL)
@@ -56,22 +57,23 @@ class KevoPy(object):
 
     def connect(self):
 
-        self._reteiveToken()
+        if self._reteiveToken():
 
-        r = self._session.post(self._host + self._signinPath,
+            r = self._session.post(self._host + self._signinPath,
 
-        data={"user[username]"      : self._username,
-             "user[password]"       : self._password,
-             "authenticity_token"   : self._token,
-             "commit"               : "Sign In",
-             "utf8"                 : "✓"})
+            data={"user[username]"      : self._username,
+                 "user[password]"       : self._password,
+                 "authenticity_token"   : self._token,
+                 "commit"               : "Sign In",
+                 "utf8"                 : "✓"})
 
-        self._praseLockIdentifiers(r.text)
+            self._praseLockIdentifiers(r.text)
 
     def locks(self):
         return self._locks.values()
 
     def refreshAll(self):
+        self.connect()
         for lock in self.locks():
             lock.refresh()
 
