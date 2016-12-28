@@ -27,4 +27,3 @@ Install:
 12. Write programs and enjoy.
 
 
-einstein.42

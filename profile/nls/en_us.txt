@@ -1,5 +1,5 @@
 # KevoControl
-ND-KEVOCONTROL-NAME = Kevo Disovery
+ND-KEVODISCO-NAME = Kevo Disovery
 
 CMD-NETDISCO-NAME = Discover Locks
 CMD-DISCOVER-NAME = Discover Locks

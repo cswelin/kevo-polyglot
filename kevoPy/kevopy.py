@@ -72,10 +72,11 @@ class KevoPy(object):
     def locks(self):
         return self._locks.values()
 
-    def refreshAll(self):
+    def refreshAll(self, completion = None):
         self.connect()
         for lock in self._locks.values():
-            lock.refresh()
+            self.logger.info("Refreshing")
+            lock.refresh(completion)
 
 
 class KevoLock(object):
@@ -93,10 +94,13 @@ class KevoLock(object):
         self._session = session
         self._host = host
 
-    def refresh(self):
+    def refresh(self, completion = None):
 
         r = self._session.get(self._host + self._info + self.lock_id)
         self._lock_data =  json.loads(r.text)
+
+        if completion is not None:
+            completion()
 
     def name(self):
 
@@ -160,7 +164,6 @@ class KevoLock(object):
 
         self.parent.update_driver()
         return True
-
 
 def main():
 

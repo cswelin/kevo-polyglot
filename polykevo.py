@@ -1,7 +1,7 @@
 from polyglot.nodeserver_api import SimpleNodeServer, PolyglotConnector
 from polykevo_types import KevoDiscovery, KevoLock
 
-VERSION = "0.1.0"
+VERSION = "0.1.1"
 
 class KevoNodeServer(SimpleNodeServer):
 
@@ -14,16 +14,19 @@ class KevoNodeServer(SimpleNodeServer):
 
         self.controller = KevoDiscovery(self,'disco','Kevo Discovery', True, manifest)
         # self.poly.logger.info("FROM Poly ISYVER: " + self.poly.isyver)
+        KevoDiscovery(self,'kevodisco','Kevo Discovery', True, manifest)
+
+        self.controller = self.get_node('kevodisco')
         self.controller.discover()
         self.update_config()
 
         # self.nodes['kevocontrol'].discover()
 
     def poll(self):
-        self.poly.logger.info("poll")
-        if len(self.locks) >= 1:
-            self.controller.refreshAll()
-
+        #self.poly.logger.info("poll")
+        #if len(self.locks) >= 1:
+        #    self.controller.refreshAll()
+        self.report_drivers()
 
     def long_poll(self):
         self.poly.logger.info("long_poll")
@@ -34,7 +37,7 @@ class KevoNodeServer(SimpleNodeServer):
     def report_drivers(self):
         self.poly.logger.info("report_drivers")
 
-        if len(self.controller.locks()) >= 1:
+        if len(self.locks) >= 1:
             for lock in self.locks:
                 lock.update_driver()
 

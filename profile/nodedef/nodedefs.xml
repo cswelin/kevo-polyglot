@@ -6,7 +6,7 @@
         <cmds>
             <sends />
             <accepts>
-                <cmd id="DISCOVER" />
+                <cmd id="NETDISCO" />
             </accepts>
         </cmds>
     </nodeDef>
@@ -22,13 +22,9 @@
             <sends />
             <accepts>
                 <cmd id="DON" />
-<!--                  <p id="" editor="KEVOST" optional="T" init="ST" />
-                </cmd>-->
                 <cmd id="DOF" />
                 <cmd id="QUERY" />
             </accepts>
         </cmds>
     </nodeDef>
-
-
 </nodeDefs>

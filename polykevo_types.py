@@ -33,7 +33,7 @@ class KevoDiscovery(Node):
                 lnode = self.parent.get_node(address)
                 if not lnode:
                     self.logger.info('Adding new Kevo Lock: %s(%s)', name, lock.lock_id)
-                    lock = KevoLock(self.parent, self.parent.get_node('disco'), address, lock, manifest)
+                    lock = KevoLock(self.parent, self.parent.get_node('kevodisco'), address, lock, manifest)
 
                     self.parent.locks.append(lock)
                 else:
@@ -48,7 +48,7 @@ class KevoDiscovery(Node):
         return True
 
     def refreshAll(self):
-        self.kevo.refreshAll()
+        self.kevo.refreshAll(self.parent.report_drivers)
 
     _drivers = {}
 
@@ -66,7 +66,7 @@ class KevoLock(Node):
         self.name = lock.name()
         self.lock = lock
         self.logger.info('Address: %s', address)
-        # super(KevoLock, self).__init__(parent, address, "Kevo " + lock.name(), primary, manifest)
+
         super(KevoLock, self).__init__(parent, address, "Kevo " + lock.name(), primary, manifest)
         self.logger.info('Initializing New Kevo Lock')
         self.update_info()
@@ -112,9 +112,7 @@ class KevoLock(Node):
         return True
 
     def update_info(self):
-
-        self.lock.refresh()
-        self.update_driver()
+        self.lock.refresh(self.update_driver)
 
     def update_driver(self):
         try:
