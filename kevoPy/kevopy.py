@@ -74,7 +74,7 @@ class KevoPy(object):
 
     def refreshAll(self):
         self.connect()
-        for lock in self.locks():
+        for lock in self._locks.values():
             lock.refresh()
 
 
