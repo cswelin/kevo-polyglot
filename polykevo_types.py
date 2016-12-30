@@ -126,6 +126,7 @@ class KevoLock(Node):
 
     _commands = {'DON': _setOn,
                  'DOF': _setOff,
-                 'ST' : query}
+                 'ST' : query,
+                 'QUERY' : query}
 
     node_def_id = 'KEVO'
