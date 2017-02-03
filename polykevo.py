@@ -56,7 +56,7 @@ def main():
 
     poly = PolyglotConnector()
 
-    nserver = KevoNodeServer(poly, 5, 60)
+    nserver = KevoNodeServer(poly, 30, 60)
     poly.connect()
     poly.wait_for_config()
 
