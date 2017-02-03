@@ -22,7 +22,7 @@ class KevoNodeServer(SimpleNodeServer):
             self.controller.discover()
             self.update_config()
 
-        except TypeError as e:
+        except Exception as e:
             self.parent.poly.logger.info('KevoNodeServer setup caught exception: %s', e)
 
     def poll(self):
@@ -30,7 +30,7 @@ class KevoNodeServer(SimpleNodeServer):
             self.poly.logger.info("poll")
             self.report_drivers()
 
-        except TypeError as e:
+        except Exception as e:
             self.parent.poly.logger.info('KevoNodeServer setup caught exception: %s', e)
 
     def long_poll(self):
@@ -39,7 +39,7 @@ class KevoNodeServer(SimpleNodeServer):
             if len(self.locks) >= 1:
                 self.controller.refreshAll()
 
-        except TypeError as e:
+        except Exception as e:
             self.parent.poly.logger.info('KevoNodeServer long_poll caught exception: %s', e)
 
     def report_drivers(self):
@@ -49,7 +49,7 @@ class KevoNodeServer(SimpleNodeServer):
             if len(self.locks) >= 1:
                 for lock in self.locks:
                     lock.update_driver()
-        except TypeError as e:
+        except Exception as e:
             self.parent.poly.logger.info('KevoNodeServer report_drivers caught exception: %s', e)
 
 def main():
