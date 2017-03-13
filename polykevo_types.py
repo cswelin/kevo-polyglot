@@ -8,6 +8,7 @@ class KevoDiscovery(Node):
     def __init__(self, *args, **kwargs):
         super(KevoDiscovery, self).__init__(*args, **kwargs)
         self.kevo = KevoPy(USERNAME, PASSWORD)
+        self.kevo.logger = self.parent.poly.logger
 
     def id_2_addr(self, udn):
         ''' convert udn id to isy address '''
@@ -17,31 +18,36 @@ class KevoDiscovery(Node):
 
     def discover(self, **kwargs):
 
-        manifest = self.parent.config.get('manifest', {})
-        self.parent.poly.logger.info("Discovering Kevo Locks...")
-        self.parent.poly.logger.info("User: %s", USERNAME)
-        self.kevo.connect()
+        try:
+            manifest = self.parent.config.get('manifest', {})
+            self.parent.poly.logger.info("Discovering Kevo Locks...")
+            self.parent.poly.logger.info("User: %s", USERNAME)
+            self.kevo.connect()
 
-        self.parent.poly.logger.info("Found %d Locks", len(self.kevo.locks()))
+            self.parent.poly.logger.info("Found %d Locks", len(self.kevo.locks()))
 
-        if len(self.kevo.locks()) > 0:
-            for lock in self.kevo.locks():
+            if len(self.kevo.locks()) > 0:
+                for lock in self.kevo.locks():
 
-                name = lock.name()
-                address = self.id_2_addr(lock.identifier())
+                    name = lock.name()
+                    address = self.id_2_addr(lock.identifier())
 
-                lnode = self.parent.get_node(address)
-                if not lnode:
-                    self.logger.info('Adding new Kevo Lock: %s(%s)', name, lock.lock_id)
-                    lock = KevoLock(self.parent, self.parent.get_node('kevodisco'), address, lock, manifest)
+                    lnode = self.parent.get_node(address)
+                    if not lnode:
+                        self.logger.info('Adding new Kevo Lock: %s(%s)', name, lock.lock_id)
+                        lock = KevoLock(self.parent, self.parent.get_node('kevodisco'), address, lock, manifest)
 
-                    self.parent.locks.append(lock)
-                else:
-                    self.logger.info('Kevo Lock: %s(%s) already added', name, lock.lock_id)
-        else:
-            self.logger.info("No Locks found")
+                        self.parent.locks.append(lock)
+                    else:
+                        self.logger.info('Kevo Lock: %s(%s) already added', name, lock.lock_id)
+            else:
+                self.logger.info("No Locks found")
 
-        return True
+            return True
+
+        except TypeError as e:
+            self.logger.info('KevoDiscovery discover caught exception: %s', e)
+            return False
 
     def query(self, **kwargs):
         self.parent.report_drivers()
