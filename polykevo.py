@@ -1,7 +1,7 @@
 from polyglot.nodeserver_api import SimpleNodeServer, PolyglotConnector
 from polykevo_types import KevoDiscovery, KevoLock
 
-VERSION = "0.1.1"
+VERSION = "0.2.0"
 
 class KevoNodeServer(SimpleNodeServer):
 
