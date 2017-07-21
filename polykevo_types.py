@@ -17,12 +17,11 @@ class KevoDiscovery(Node):
         return hasher.hexdigest()[0:14]
 
     def discover(self, **kwargs):
-
         try:
             manifest = self.parent.config.get('manifest', {})
             self.parent.poly.logger.info("Discovering Kevo Locks...")
             self.parent.poly.logger.info("User: %s", USERNAME)
-            self.kevo.connect()
+            self.kevo.login()
 
             self.parent.poly.logger.info("Found %d Locks", len(self.kevo.locks()))
 
@@ -76,6 +75,7 @@ class KevoLock(Node):
         super(KevoLock, self).__init__(parent, address, "Kevo " + lock.name(), primary, manifest)
         self.logger.info('Initializing New Kevo Lock')
         self.update_info()
+        self.lock.on_update = self.update_driver()
 
     def _setOn(self, **kwargs):
 

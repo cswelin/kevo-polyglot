@@ -3,19 +3,26 @@ import requests
 import re
 import json
 import time
+import websocket
+import threading
+from kevolock import KevoLock
 
 from requests.packages.urllib3.exceptions import InsecureRequestWarning
 requests.packages.urllib3.disable_warnings(InsecureRequestWarning)
 
 class KevoPy(object):
+    LOCK_STATUS_CHANGE = "LockStatus"
 
     _username = ''
     _password = ''
     _host = ''
+    _websocketLocation = ''
+    _ws = None
+    _wst = None
 
     _loginPath  = 'login'
     _signinPath = 'signin'
-
+    _wsLocationPath = 'user/remote_locks/auth/show.json'
     _locks       = {}
 
     def __init__(self, username, password, host='https://www.mykevo.com/'):
@@ -43,7 +50,8 @@ class KevoPy(object):
         self._token = values[0].strip()
 
         return True
-    def _praseLockIdentifiers(self,html):
+
+    def _parseLockIdentifiers(self,html):
 
         p = re.compile(r'<div class=\'lock_unlock_container\' data-bolt-state=\'.*?\' data-lock-id=\'(.*?)\' id', re.MULTILINE | re.DOTALL)
         # print html
@@ -55,7 +63,90 @@ class KevoPy(object):
             kevo.refresh()
             self._locks[kevo.lock_id] = kevo
 
-    def connect(self):
+    def _parseWebsocketLocation(self):
+
+        try:
+            r = self._session.get(self._host + self._wsLocationPath)
+            self._websocketLocation = json.loads(r.text)["socket_location"]
+            return True
+        except Exception as e:
+            print(e)
+
+    def _openSocketConnection(self, *args):
+        if self._ws is not None:
+            self._ws.close()
+            self._wst.join()
+
+        self.logger.info("BEFORE")
+        self._ws = websocket.WebSocketApp(self._websocketLocation, on_message = self._on_message, on_error = self._on_error, on_close = self._on_close)
+        self._ws.on_open = self._on_open
+        self._wst = threading.Thread(target=self._ws.run_forever)
+        self._wst.daemon = True
+        self._wst.start()
+        self.logger.info("BEFORE AFTER")
+
+    def _on_message(self, ws, message):
+        data = json.loads(message)
+
+        self.logger.info(data)
+        print(data)
+        if data["messageType"] == self.LOCK_STATUS_CHANGE:
+            self._handleLockStatusMessage(data)
+
+    def _on_error(self, ws, error):
+        print(error)
+
+    def _on_close(self, ws):
+        self.logger.info("### closed ###")
+        print("### closed ###")
+
+        time.sleep(5)
+        self.openSocketConnection()
+
+    def _on_open(self, ws):
+        self.logger.info("### opened ####")
+        print("### connection open ###")
+
+    def _handleLockStatusMessage(self, message):
+        data = message["messageData"]
+
+        if "command" in data:
+            self._handleCommand(data["command"])
+        else:
+            self._handleLockStatus(data)
+
+        print data
+
+    def _handleLockStatus(self, data):
+        kevoLock = self._locks[data["lockId"]]
+        kevoLock.setState(self._statusForState(data["boltState"]))
+
+    def _handleCommand(self, lock_id, data):
+        status = self._statusForCommand(data["type"], data["status"])
+
+        kevoLock = self._locks[lock_id]
+        kevoLock.setStatus(status)
+        if status == "Locked" or status == "Unlocked":
+            kevoLock.setState(status)
+
+    def _statusForCommand(self, command, state):
+        if command == 1:
+            return ["Unknown", "Submitted", "Connecting", "Connected", "Processing", "Locked"][state]
+        elif command == 2:
+            return ["Unknown", "Submitted", "Connecting", "Connected", "Processing", "Unlocked"][state]
+        else:
+            return ["Unknown", "Submitted", "Connecting", "Connected", "Processing", "Unknown", "Updating", "Confirming"][state]
+
+
+    def _statusForState(self, state):
+        if state in ["Locked", "lock", 1]:
+            return "Locked"
+        elif state in ["Unlocked", "unlock", 2]:
+            return "Unlocked"
+        else:
+            return "Unknown"
+
+    def login(self):
 
         if self._reteiveToken():
 
@@ -67,111 +158,31 @@ class KevoPy(object):
                  "commit"               : "Sign In",
                  "utf8"                 : "✓"})
 
-            self._praseLockIdentifiers(r.text)
+            self._parseLockIdentifiers(r.text)
+
+            if self._parseWebsocketLocation():
+                self._openSocketConnection()
 
     def locks(self):
         return self._locks.values()
 
     def refreshAll(self, completion = None):
-        self.connect()
+        self.login()
         for lock in self._locks.values():
             self.logger.info("Refreshing")
             lock.refresh(completion)
 
-
-class KevoLock(object):
-
-    _lock_data  = {}
-    _unlock     = 'user/remote_locks/command/remote_unlock.json?arguments='
-    _lock       = 'user/remote_locks/command/remote_lock.json?arguments='
-    _info       = 'user/remote_locks/command/lock.json?arguments='
-    _session    = ''
-    _host       = ''
-
-    def __init__(self, lock_id, session, host):
-
-        self.lock_id = lock_id
-        self._session = session
-        self._host = host
-
-    def refresh(self, completion = None):
-
-        r = self._session.get(self._host + self._info + self.lock_id)
-        self._lock_data =  json.loads(r.text)
-
-        if completion is not None:
-            completion()
-
-    def name(self):
-
-        return self._lock_data["name"]
-
-    def identifier(self):
-
-        return self._lock_data["id"]
-
-    def query(self):
-
-        return self._lock_data["bolt_state"]
-
-    def unlock(self):
-
-        try:
-
-            self._expected_state = "Unlocked"
-            self._previous_lock_state = self._lock_data["bolt_state"]
-
-            r = self._session.get(self._host + self._unlock + self.lock_id)
-            return self.verifyConfirmation()
-
-        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError, TypeError) as e:
-
-            return False
-
-    def lock(self):
-
-        try:
-
-            self._expected_state = "Locked"
-            self._previous_lock_state = self._lock_data["bolt_state"]
-
-            r = self._session.get(self._host + self._lock + self.lock_id)
-            return self.verifyConfirmation()
-
-        except (requests.exceptions.HTTPError, requests.exceptions.ConnectionError, TypeError) as e:
-
-            return False
-
-    def toggle(self):
-
-        if self.query() == "Unlocked":
-            self.lockLock()
-        else:
-            self.unlockLock()
-
-
-    def verifyConfirmation(self):
-
-        timeout = time.time() + 60*2
-        while self._expected_state != self._lock_data["bolt_state"]:
-
-            if time.time() > timeout:
-                return False
-
-            time.sleep(15)
-
-            self.refresh()
-
-        self.parent.update_driver()
-        return True
-
 def main():
 
+    websocket.enableTrace(True)
     kevo = KevoPy('user', 'pass')
-    kevo.connect()
+    kevo.login()
 
-    for lock in kevo.locks():
-        print lock.query()
+    while True:
+        for lock in kevo.locks():
+            print lock.query()
+
+        time.sleep(30)
 
 
 if __name__ == '__main__':

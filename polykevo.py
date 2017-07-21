@@ -1,7 +1,7 @@
 from polyglot.nodeserver_api import SimpleNodeServer, PolyglotConnector
 from polykevo_types import KevoDiscovery, KevoLock
 
-VERSION = "0.2.0"
+VERSION = "1.0.0"
 
 class KevoNodeServer(SimpleNodeServer):
 
@@ -49,6 +49,7 @@ class KevoNodeServer(SimpleNodeServer):
             if len(self.locks) >= 1:
                 for lock in self.locks:
                     lock.update_driver()
+
         except Exception as e:
             self.poly.logger.info('KevoNodeServer report_drivers caught exception: %s', e)
 
@@ -56,7 +57,7 @@ def main():
 
     poly = PolyglotConnector()
 
-    nserver = KevoNodeServer(poly, 30, 60)
+    nserver = KevoNodeServer(poly, 30, 300)
     poly.connect()
     poly.wait_for_config()
 
