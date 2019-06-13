@@ -1,3 +1,7 @@
+### Currently broken
+
+Unikey added captcha login requirement which breaks the current implementation.
+
 # kevo-polyglot
 This is a Kevo Plus interface for ISY Polyglot.
 
